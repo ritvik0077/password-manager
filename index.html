@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #74ebd5, #acb6e5);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+      animation: fadeIn 1.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      animation: slideDown 1s ease forwards;
+    }
+
+    header h3 {
+      font-weight: 400;
+      font-size: 1.2rem;
+      margin-top: 8px;
+      opacity: 0.8;
+      animation: slideDown 1.2s ease forwards;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .container {
+      background: #fff;
+      padding: 50px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 660px;
+      box-shadow: 0px 12px 30px rgba(0,0,0,0.2);
+      animation: scaleUp 0.8s ease;
+    }
+
+    @keyframes scaleUp {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .hidden { display: none; }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #4c8bf5;
+      box-shadow: 0 0 8px rgba(76, 139, 245, 0.5);
+      outline: none;
+    }
+
+    button {
+      padding: 14px 20px;
+      margin: 10px 5px 0 0;
+      background-color: #4c8bf5;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background-color: #3b74d1;
+      transform: translateY(-2px);
+    }
+
+    .copy-btn {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      color: #4c8bf5;
+      font-size: 14px;
+      margin-left: 8px;
+      transition: color 0.3s;
+    }
+
+    .copy-btn:hover {
+      color: #256cc1;
+    }
+
+    #alert, .copy-alert {
+      display: none;
+      color: green;
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      animation: fadeIn 1.2s ease;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #4c8bf5;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    #login-error {
+      color: red;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #888;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Password Manager</h1>
+    <h3>Secure your credentials safely</h3>
+  </header>
+
+  <div class="container" id="login-container">
+    <h2 style="text-align:center; margin-bottom: 20px;">Login</h2>
+    <input type="text" id="login-username" placeholder="Username" required />
+    <div style="position: relative;">
+      <input type="password" id="login-password" placeholder="Password" required />
+      <span class="toggle-password" onclick="toggleVisibility('login-password', this)">👁️</span>
+    </div>
+    <button onclick="login()">Login</button>
+    <p id="login-error"></p>
+  </div>
+
+  <div class="container hidden" id="app-container">
+    <h2 style="text-align:center; margin-bottom: 20px;">Manage Passwords</h2>
+    <form onsubmit="savePassword(event)">
+      <input type="text" id="website" placeholder="Website" required />
+      <input type="text" id="username" placeholder="Username" required />
+      <div style="position: relative;">
+        <input type="password" id="password" placeholder="Password" required />
+        <span class="toggle-password" onclick="toggleVisibility('password', this)">👁️</span>
+      </div>
+      <div style="display:flex; justify-content: space-between; flex-wrap: wrap;">
+        <button type="submit" style="flex: 1;">Save</button>
+        <button type="button" onclick="generatePassword()" style="flex: 1;">Generate</button>
+      </div>
+    </form>
+
+    <p id="alert">Password copied to clipboard!</p>
+
+    <table id="password-table">
+      <thead>
+        <tr>
+          <th>Website</th>
+          <th>Username</th>
+          <th>Password</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <p class="copy-alert" id="copy-alert">Copied to clipboard!</p>
+  </div>
+
+  <script>
+    let aesKey;
+
+    async function deriveKey(password) {
+      const encoder = new TextEncoder();
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw", encoder.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function encryptText(text, key) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(text);
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv }, key, encoded
+      );
+      return {
+        cipher: btoa(String.fromCharCode(...new Uint8Array(ciphertext))),
+        iv: btoa(String.fromCharCode(...iv))
+      };
+    }
+
+    async function decryptText(cipherBase64, ivBase64, key) {
+      const cipher = Uint8Array.from(atob(cipherBase64), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv }, key, cipher
+      );
+      return new TextDecoder().decode(decrypted);
+    }
+
+    async function login() {
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      if (username === 'Kmce' && password === 'Kmce123') {
+        aesKey = await deriveKey(password);
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+      } else {
+        document.getElementById('login-error').textContent = 'Invalid username or password';
+      }
+    }
+
+    function generatePassword() {
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+      let password = "";
+      for (let i = 0; i < 12; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('password').value = password;
+      navigator.clipboard.writeText(password);
+      showCopyAlert();
+    }
+
+    async function savePassword(event) {
+      event.preventDefault();
+      const website = document.getElementById('website').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const encrypted = await encryptText(password, aesKey);
+      const tableBody = document.querySelector('#password-table tbody');
+      const row = document.createElement('tr');
+
+      row.innerHTML = `
+        <td>${website}<button class="copy-btn" onclick="copyText('${website}')">📋</button></td>
+        <td>${username}<button class="copy-btn" onclick="copyText('${username}')">📋</button></td>
+        <td><button class="copy-btn" onclick="revealPassword('${encrypted.cipher}', '${encrypted.iv}')">🔓 Reveal</button></td>
+      `;
+
+      tableBody.appendChild(row);
+      document.getElementById('website').value = '';
+      document.getElementById('username').value = '';
+      document.getElementById('password').value = '';
+    }
+
+    async function revealPassword(cipher, iv) {
+      const plain = await decryptText(cipher, iv, aesKey);
+      copyText(plain);
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyAlert();
+      });
+    }
+
+    function showCopyAlert() {
+      const alert = document.getElementById('copy-alert');
+      alert.style.display = 'block';
+      setTimeout(() => {
+        alert.style.display = 'none';
+      }, 1500);
+    }
+
+    function toggleVisibility(id, icon) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        icon.textContent = '👁️';
+      }
+    }
+  </script>
+</body>
+</html>
